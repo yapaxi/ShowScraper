@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>ShowScraper.DataAccess</AssemblyName>
+    <RootNamespace>ShowScraper.DataAccess</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.14.21" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.3.2" />
+  </ItemGroup>
+  
+</Project>

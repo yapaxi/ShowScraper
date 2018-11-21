@@ -27,7 +27,7 @@ namespace ShowScraper
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvcCore()
+            services.AddMvc()
             .AddControllersAsServices()
             .AddJsonOptions(e =>
             {
