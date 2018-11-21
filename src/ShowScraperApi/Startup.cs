@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using ShowScraper.Api.Middleware;
 
 namespace ShowScraper
 {
@@ -58,6 +59,7 @@ namespace ShowScraper
             NLog.LogManager.LoadConfiguration("nlog.config");
             loggerFactory.AddNLog();
 
+            app.UseMiddleware<LoggingMiddleware>();
             app.UseMvc();
 
             appLifetime.ApplicationStarted.Register(() =>
@@ -71,5 +73,6 @@ namespace ShowScraper
                 _applicationContainer.Dispose();
             });
         }
+
     }
 }
