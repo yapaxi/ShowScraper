@@ -51,9 +51,7 @@ namespace ShowScraper.BusinessLogic
                 AssignedScrapers = new List<string>(),
                 CreatedAtUtc = DateTime.UtcNow
             };
-
-            await _storageProvider.SaveJob(job);
-
+            
             var allShows = await _showDatabase.GetAllShows();
             
             var assignments = (
