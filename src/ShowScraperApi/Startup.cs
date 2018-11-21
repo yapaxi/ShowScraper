@@ -2,32 +2,73 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 
 namespace ShowScraper
 {
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
+        private readonly IConfiguration _configuration;
+        private IContainer _applicationContainer;
+
+        public Startup(IConfiguration configuration)
         {
+            _configuration = configuration;
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            if (env.IsDevelopment())
+            services.AddMvcCore()
+            .AddControllersAsServices()
+            .AddJsonOptions(e =>
             {
-                app.UseDeveloperExceptionPage();
-            }
+                e.SerializerSettings.DateFormatString = "yyyy-MM-dd'T'HH:mm:ss.fffZ";
+                e.SerializerSettings.Culture = System.Globalization.CultureInfo.InvariantCulture;
+                e.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+            });
 
-            app.Run(async (context) =>
+            services.AddLogging(e => e.ClearProviders());
+
+            _applicationContainer = CreateContainer(services);
+
+            return new AutofacServiceProvider(_applicationContainer);
+        }
+
+        private IContainer CreateContainer(IServiceCollection services)
+        {
+            var builder = new ContainerBuilder();
+            builder.Populate(services);
+            return builder.Build();
+        }
+
+        public void Configure(
+            IApplicationBuilder app,
+            IHostingEnvironment env,
+            ILoggerFactory loggerFactory,
+            IApplicationLifetime appLifetime)
+        {
+            NLog.LogManager.LoadConfiguration("nlog.config");
+            loggerFactory.AddNLog();
+
+            app.UseMvc();
+
+            appLifetime.ApplicationStarted.Register(() =>
             {
-                await context.Response.WriteAsync("Hello World!");
+                _applicationContainer.Resolve<ILogger<Startup>>().LogInformation("Application has started");
+            });
+
+            appLifetime.ApplicationStopped.Register(() =>
+            {
+                _applicationContainer.Resolve<ILogger<Startup>>().LogInformation("Trying to stop gracefully...");
+                _applicationContainer.Dispose();
             });
         }
     }
