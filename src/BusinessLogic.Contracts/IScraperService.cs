@@ -7,7 +7,7 @@ namespace ShowScraper.BusinessLogic.Contracts
 {
     public interface IScraperService
     {
-        Task<Option<ScraperJob>> StartJob(ScraperJobParameters scraperJob);
+        Task<Option<ScraperJob>> CreateJob(ScraperJobParameters scraperJob);
         Task<Option<ScraperJob>> GetJob(string id);
     }
 }

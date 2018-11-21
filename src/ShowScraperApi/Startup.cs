@@ -36,7 +36,7 @@ namespace ShowScraper
                 e.SerializerSettings.Culture = System.Globalization.CultureInfo.InvariantCulture;
                 e.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
             });
-
+            
             services.AddLogging(e => e.ClearProviders());
 
             _applicationContainer = CreateContainer(services);

@@ -19,14 +19,14 @@ namespace ShowScraper.Api.Controllers
 
         [HttpPost]
         [Route("scraper/jobs")]
-        public async Task<IActionResult> StartScraping([FromBody] StartScrapingRequest request)
+        public async Task<IActionResult> CreateJob([FromBody] StartScrapingRequest request)
         {
-            var result = await _scraperService.StartJob(new ScraperJobParameters(
+            var result = await _scraperService.CreateJob(new ScraperJobParameters(
                 maxScrapers: request?.ConcurrentScrapers,
                 maxShowsPerTask: request?.MaxShowsPerScraper
             ));
 
-            return HandleResult(result, content => CreatedAtAction(nameof(Job), new { id = content.Id }, request));
+            return HandleResult(result, content => CreatedAtAction(nameof(Job), new { id = content.Id }));
         }
 
         [HttpGet]
@@ -35,9 +35,7 @@ namespace ShowScraper.Api.Controllers
         {
             var result = await _scraperService.GetJob(id);
 
-            return HandleResult(result, content => Ok(new {
-                id = content.Id
-            }));
+            return HandleResult(result, content => Ok(content));
         }
 
         private IActionResult HandleResult<T>(Option<T> option, Func<T, IActionResult> onSuccess)
