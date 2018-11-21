@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShowScraper.Api.Models;
+using ShowScraper.BusinessLogic.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,20 +10,51 @@ namespace ShowScraper.Api.Controllers
 {
     public class ScraperController : Controller
     {
+        private readonly IScraperService _scraperService;
+
+        public ScraperController(IScraperService scraperService)
+        {
+            _scraperService = scraperService;
+        }
+
         [HttpPost]
         [Route("scraper/jobs")]
         public async Task<IActionResult> StartScraping([FromBody] StartScrapingRequest request)
         {
-            var id = Guid.NewGuid().ToString("N");
+            var result = await _scraperService.StartJob(new ScraperJobParameters(
+                maxScrapers: request?.ConcurrentScrapers,
+                maxShowsPerTask: request?.MaxShowsPerScraper
+            ));
 
-            return CreatedAtAction(nameof(Job), new { id = id }, request);
+            return HandleResult(result, content => CreatedAtAction(nameof(Job), new { id = content.Id }, request));
         }
 
         [HttpGet]
         [Route("scraper/jobs/{id}")]
         public async Task<IActionResult> Job(string id)
         {
-            return Ok(new { xxx = "aaa" });
+            var result = await _scraperService.GetJob(id);
+
+            return HandleResult(result, content => Ok(new {
+                id = content.Id
+            }));
+        }
+
+        private IActionResult HandleResult<T>(Option<T> option, Func<T, IActionResult> onSuccess)
+        {
+            switch (option)
+            {
+                case Option<T>.Ok c:
+                    return onSuccess(c.Content);
+                case Option<T>.Conflict c:
+                    return StatusCode(409);
+                case Option<T>.NotFound c:
+                    return StatusCode(404);
+                case Option<T>.PreconditionViolation c:
+                    return BadRequest(c.FriendlyMessage);
+                default:
+                    throw new InvalidOperationException($"Unexpected option type: {option?.GetType().Name ?? "<NULL>"}");
+            }
         }
     }
 }

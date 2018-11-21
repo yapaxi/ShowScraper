@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using ShowScraper.Api.Middleware;
+using ShowScraper.DI;
 
 namespace ShowScraper
 {
@@ -46,6 +47,8 @@ namespace ShowScraper
         private IContainer CreateContainer(IServiceCollection services)
         {
             var builder = new ContainerBuilder();
+            builder.RegisterModule(new BusinessLogicModule());
+            builder.RegisterModule(new DataAccessModule());
             builder.Populate(services);
             return builder.Build();
         }
