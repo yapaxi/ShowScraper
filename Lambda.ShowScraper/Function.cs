@@ -19,13 +19,12 @@ namespace Lambda.ShowScraper
 {
     public class Function
     {
+        private static readonly AmazonDynamoDBClient _client = new AmazonDynamoDBClient();
+        private static readonly DynamoDBContext _context = new DynamoDBContext(_client);
+        private static readonly HttpClient _httpClient = new HttpClient();
+        
         public async Task<string> Handle(SNSEvent snsEvent)
         {
-            AmazonDynamoDBClient _client = new AmazonDynamoDBClient();
-            DynamoDBContext _context = new DynamoDBContext(_client);
-            HttpClient _httpClient = new HttpClient();
-
-
             var record = snsEvent.Records.Single();
 
             var tasks = JsonConvert.DeserializeObject<string[]>(record.Sns.Message);
