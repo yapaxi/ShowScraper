@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusinessLogic", "src\Busine
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DI", "src\DI\DI.csproj", "{011D35CB-957B-43B7-83AF-DA0B11A974F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessLogic.Contracts", "src\BusinessLogic.Contracts\BusinessLogic.Contracts.csproj", "{4BE8E3EE-932D-49AC-9AC2-D976F0357DE7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusinessLogic.Contracts", "src\BusinessLogic.Contracts\BusinessLogic.Contracts.csproj", "{4BE8E3EE-932D-49AC-9AC2-D976F0357DE7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lambda.ShowScraper", "Lambda.ShowScraper\Lambda.ShowScraper.csproj", "{C6626A2A-EF08-414F-B0BA-54528FC30B20}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{4BE8E3EE-932D-49AC-9AC2-D976F0357DE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BE8E3EE-932D-49AC-9AC2-D976F0357DE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BE8E3EE-932D-49AC-9AC2-D976F0357DE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6626A2A-EF08-414F-B0BA-54528FC30B20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6626A2A-EF08-414F-B0BA-54528FC30B20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6626A2A-EF08-414F-B0BA-54528FC30B20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6626A2A-EF08-414F-B0BA-54528FC30B20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
