@@ -35,7 +35,7 @@ namespace Lambda.ShowScraper
 
                 foreach (var showId in task.Shows)
                 {
-                    var url = $"http://api.tvmaze.com/shows/{WebUtility.UrlDecode(showId)}?embed=cast";
+                    var url = $"http://api.tvmaze.com/shows/{WebUtility.UrlEncode(showId)}?embed=cast";
                     var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url));
                     var show = JObject.Parse(await response.Content.ReadAsStringAsync());
                     var doc = new JObject();
