@@ -22,8 +22,8 @@ namespace ShowScraper.Api.Controllers
         public async Task<IActionResult> CreateJob([FromBody] StartScrapingRequest request)
         {
             var result = await _scraperService.CreateJob(new ScraperJobParameters(
-                maxScrapers: request?.ConcurrentScrapers,
-                maxShowsPerTask: request?.MaxShowsPerScraper
+                maxShowsPerTask: request?.MaxShowsPerScraper,
+                startingPage: request?.StartingPage
             ));
 
             return HandleResult(result, content => CreatedAtAction(nameof(Job), new { id = content.Id }, content.Id));

@@ -16,11 +16,13 @@ namespace ShowScraper.BusinessLogic.Bus
             _sns = sns ?? throw new ArgumentNullException(nameof(sns));
         }
 
-        public Task SendProcessTaskCommand(string taskId)
+        public Task SendScrapPageCommand(string jobId, int pageId, int lastId)
         {
             return _sns.PublishAsync(_scraperTaskSNSTopic, JsonConvert.SerializeObject(new
             {
-                taskId = taskId
+                jobId = jobId,
+                pageId = pageId,
+                lastId = lastId
             }));
         }
     }

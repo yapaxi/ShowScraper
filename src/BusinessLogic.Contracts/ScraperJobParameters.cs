@@ -2,13 +2,13 @@
 {
     public class ScraperJobParameters
     {
-        public ScraperJobParameters(int? maxShowsPerTask = null, int? maxScrapers = null)
+        public ScraperJobParameters(int? maxShowsPerTask = null, int? startingPage = null)
         {
             MaxShowsPerTask = maxShowsPerTask;
-            MaxScrapers = maxScrapers;
+            StartingPage = startingPage;
         }
 
         public int? MaxShowsPerTask { get; }
-        public int? MaxScrapers { get; }
+        public int? StartingPage { get; }
     }
 }

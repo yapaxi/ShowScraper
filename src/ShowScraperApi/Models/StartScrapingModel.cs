@@ -7,7 +7,7 @@ namespace ShowScraper.Api.Models
 {
     public class StartScrapingRequest
     {
-        public int? ConcurrentScrapers { get; set; }
+        public int? StartingPage { get; set; }
         public int? MaxShowsPerScraper { get; set; }
     }
 }

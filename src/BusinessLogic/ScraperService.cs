@@ -28,66 +28,27 @@ namespace ShowScraper.BusinessLogic
 
         public async Task<Option<ScraperJob>> CreateJob(ScraperJobParameters scraperJob)
         {
-            var maxScrapers = scraperJob?.MaxScrapers ?? 2;
-            var maxShowsPerTask = scraperJob?.MaxShowsPerTask ?? 10;
+            var maxShowsPerTask = scraperJob?.MaxShowsPerTask ?? 20;
+            var startingPage = scraperJob?.StartingPage ?? 0;
 
-            if (maxScrapers <= 0)
-            {
-                return new Option<ScraperJob>.PreconditionViolation($"Invalid maxium scraper count: {maxScrapers}");
-            }
-
-            if (maxShowsPerTask <= 0)
+            if (maxShowsPerTask <= 0 || maxShowsPerTask > 250)
             {
                 return new Option<ScraperJob>.PreconditionViolation($"Invalid maxium shows per task count: {maxShowsPerTask}");
             }
 
-            if (maxScrapers > _maxScrapers)
+            if (startingPage < 0)
             {
-                return new Option<ScraperJob>.PreconditionViolation($"Provided scraper count is greater that maxium: {maxScrapers} > {_maxScrapers}");
+                return new Option<ScraperJob>.PreconditionViolation($"Invalid starting page: {startingPage}");
             }
 
             var job = new Job()
             {
                 Id = Guid.NewGuid().ToString("N"),
-                MaxScrapers = maxScrapers,
                 MaxShowsPerTask = maxShowsPerTask,
-                AssignedScrapers = new List<string>(),
+                StartingPage = startingPage,
                 CreatedAtUtc = DateTime.UtcNow
             };
-
-            var allShows = await _showDatabase.GetAllShows();
             
-            var assignments = (
-                 from q in allShows.Select((show, index) => (show, index))
-                 group q.show by q.index % maxScrapers into scrapers
-                 let scraperId = Guid.NewGuid().ToString("N")
-                 let tasks = (from z in scrapers.Select((shows, index) => (shows, index))
-                              group z.shows by z.index / maxShowsPerTask into grp
-                              let taskId = Guid.NewGuid().ToString("N")
-                              select new JobTask()
-                              {
-                                  Id = FormatTaskId(job, scraperId, grp.Key),
-                                  JobId = job.Id,
-                                  ScraperId = scraperId,
-                                  Shows = grp.Select(q => q.Id.ToString()).ToList()
-                              }).ToArray()
-                 select new
-                 {
-                     scraperId,
-                     tasks
-                 }
-            ).ToArray();
-
-            foreach (var scraper in assignments)
-            {
-                foreach (var task in scraper.tasks)
-                {
-                    await _storageProvider.SaveTask(task);
-                }
-
-                job.AssignedScrapers.Add(scraper.scraperId);
-            }
-
             await _storageProvider.SaveJob(job);
 
             return new Option<ScraperJob>.Ok(Convert(job));
@@ -111,10 +72,7 @@ namespace ShowScraper.BusinessLogic
                     return new Option<ScraperJobExecution>.Conflict();
                 }
 
-                foreach (var scraperId in job.AssignedScrapers)
-                {
-                    await _bus.SendProcessTaskCommand(FormatTaskId(job, scraperId, 0));
-                }
+                await _bus.SendScrapPageCommand(job.Id, job.StartingPage, -1);
 
                 return new Option<ScraperJobExecution>.Ok(new ScraperJobExecution(executionId, id));
             }
@@ -123,12 +81,7 @@ namespace ShowScraper.BusinessLogic
                 return new Option<ScraperJobExecution>.NotFound();
             }
         }
-
-        private static string FormatTaskId(Job job, string scraperId, int id)
-        {
-            return $"{job.Id}:{scraperId}:{id}";
-        }
-
+        
         public async Task<Option<ScraperJob>> GetJob(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -153,8 +106,7 @@ namespace ShowScraper.BusinessLogic
             return new ScraperJob(
                 id: job.Id,
                 maxShowsPerTask: job.MaxShowsPerTask,
-                maxScrapers: job.MaxScrapers,
-                assignedScrapers: job.AssignedScrapers,
+                startingPage: job.StartingPage,
                 createdAtUtc: job.CreatedAtUtc
             );
         }

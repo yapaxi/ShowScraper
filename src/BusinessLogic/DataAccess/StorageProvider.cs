@@ -24,22 +24,9 @@ namespace ShowScraper.BusinessLogic.DataAccess
             });
         }
 
-        public Task<JobTask> GetTask(string id)
-        {
-            return _context.LoadAsync<JobTask>(id, new DynamoDBOperationConfig()
-            {
-                ConsistentRead = true
-            });
-        }
-
         public Task SaveJob(Job job)
         {
            return _context.SaveAsync(job);
-        }
-
-        public Task SaveTask(JobTask task)
-        {
-            return _context.SaveAsync(task);
         }
 
         public async Task<string> TrySetExecution(string jobId)

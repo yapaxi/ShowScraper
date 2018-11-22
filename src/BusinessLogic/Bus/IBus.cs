@@ -7,6 +7,6 @@ namespace ShowScraper.BusinessLogic.Bus
 {
     public interface IBus
     {
-        Task SendProcessTaskCommand(string taskId);
+        Task SendScrapPageCommand(string jobId, int pageId, int lastId);
     }
 }
