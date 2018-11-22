@@ -19,6 +19,8 @@ namespace ShowScraper
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(e => e.AddJsonFile("appsettings.json")
+                                                 .AddEnvironmentVariables())
                 .UseStartup<Startup>();
     }
 }

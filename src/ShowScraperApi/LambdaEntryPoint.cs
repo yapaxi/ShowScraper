@@ -1,4 +1,5 @@
 ﻿using Amazon.Lambda.AspNetCoreServer;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,9 @@ namespace ShowScraper.Api
     {
         protected override void Init(IWebHostBuilder builder)
         {
-            builder.UseStartup<Startup>();
+            builder
+                .ConfigureAppConfiguration(e => e.AddJsonFile("appsettings.json")
+                                                 .AddEnvironmentVariables()).UseStartup<Startup>();
         }
     }
 }

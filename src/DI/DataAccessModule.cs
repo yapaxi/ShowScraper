@@ -18,6 +18,11 @@ namespace ShowScraper.DI
                 .Register<IDynamoDBContext>(e => new DynamoDBContext(new AmazonDynamoDBClient()))
                 .SingleInstance();
 
+            builder
+                .Register<IAmazonSimpleNotificationService>(e => new AmazonSimpleNotificationServiceClient())
+                .SingleInstance();
+
+
             base.Load(builder);
         }
     }

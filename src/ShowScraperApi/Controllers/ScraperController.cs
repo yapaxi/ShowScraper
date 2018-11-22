@@ -26,7 +26,16 @@ namespace ShowScraper.Api.Controllers
                 maxShowsPerTask: request?.MaxShowsPerScraper
             ));
 
-            return HandleResult(result, content => CreatedAtAction(nameof(Job), new { id = content.Id }));
+            return HandleResult(result, content => CreatedAtAction(nameof(Job), new { id = content.Id }, content.Id));
+        }
+
+        [HttpPost]
+        [Route("scraper/jobs/{id}/executions")]
+        public async Task<IActionResult> ExecuteJob(string id)
+        {
+            var result = await _scraperService.ExecuteJob(id);
+
+            return HandleResult(result, content => CreatedAtAction(nameof(Job), new { id = content.Id }, null));
         }
 
         [HttpGet]

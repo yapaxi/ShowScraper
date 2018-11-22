@@ -1,4 +1,5 @@
-﻿using ShowScraper.BusinessLogic.Contracts;
+﻿using ShowScraper.BusinessLogic.Bus;
+using ShowScraper.BusinessLogic.Contracts;
 using ShowScraper.BusinessLogic.DataAccess;
 using ShowScraper.BusinessLogic.DataAccess.Model;
 using ShowScraper.BusinessLogic.TVMaze;
@@ -14,12 +15,14 @@ namespace ShowScraper.BusinessLogic
     {
         private readonly IStorageProvider _storageProvider;
         private readonly IShowDatabase _showDatabase;
+        private readonly IBus _bus;
         private readonly int _maxScrapers;
 
-        public ScraperService(IStorageProvider storageProvider, IShowDatabase showDatabase, int maxScrapers)
+        public ScraperService(IStorageProvider storageProvider, IShowDatabase showDatabase, IBus bus, int maxScrapers)
         {
             _storageProvider = storageProvider;
             _showDatabase = showDatabase;
+            _bus = bus;
             _maxScrapers = maxScrapers;
         }
 
@@ -51,7 +54,7 @@ namespace ShowScraper.BusinessLogic
                 AssignedScrapers = new List<string>(),
                 CreatedAtUtc = DateTime.UtcNow
             };
-            
+
             var allShows = await _showDatabase.GetAllShows();
             
             var assignments = (
@@ -63,7 +66,7 @@ namespace ShowScraper.BusinessLogic
                               let taskId = Guid.NewGuid().ToString("N")
                               select new JobTask()
                               {
-                                  Id = $"{job.Id}:{scraperId}:{grp.Key}",
+                                  Id = FormatTaskId(job, scraperId, grp.Key),
                                   JobId = job.Id,
                                   ScraperId = scraperId,
                                   Shows = grp.Select(q => q.Id.ToString()).ToList()
@@ -84,10 +87,39 @@ namespace ShowScraper.BusinessLogic
 
                 job.AssignedScrapers.Add(scraper.scraperId);
             }
-            
+
             await _storageProvider.SaveJob(job);
 
             return new Option<ScraperJob>.Ok(Convert(job));
+        }
+
+        public async Task<Option<ScraperJob>> ExecuteJob(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return new Option<ScraperJob>.PreconditionViolation("JobId cannot be null or empty");
+            }
+
+            var job = await _storageProvider.GetJob(id);
+
+            if (job != null)
+            {
+                foreach (var scraperId in job.AssignedScrapers)
+                {
+                    await _bus.SendProcessTaskCommand(FormatTaskId(job, scraperId, 0));
+                }
+
+                return new Option<ScraperJob>.Ok(Convert(job));
+            }
+            else
+            {
+                return new Option<ScraperJob>.NotFound();
+            }
+        }
+
+        private static string FormatTaskId(Job job, string scraperId, int id)
+        {
+            return $"{job.Id}:{scraperId}:{id}";
         }
 
         public async Task<Option<ScraperJob>> GetJob(string id)

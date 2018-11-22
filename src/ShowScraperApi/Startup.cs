@@ -47,7 +47,7 @@ namespace ShowScraper
         private IContainer CreateContainer(IServiceCollection services)
         {
             var builder = new ContainerBuilder();
-            builder.RegisterModule(new BusinessLogicModule());
+            builder.RegisterModule(new BusinessLogicModule(_configuration));
             builder.RegisterModule(new DataAccessModule());
             builder.Populate(services);
             return builder.Build();
