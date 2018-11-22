@@ -4,7 +4,6 @@ using ShowScraper.BusinessLogic;
 using ShowScraper.BusinessLogic.Bus;
 using ShowScraper.BusinessLogic.Contracts;
 using ShowScraper.BusinessLogic.DataAccess;
-using ShowScraper.BusinessLogic.TVMaze;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,12 +22,9 @@ namespace ShowScraper.DI
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<StorageProvider>().As<IStorageProvider>().SingleInstance();
-
-            builder.RegisterType<ShowDatabase>().As<IShowDatabase>().SingleInstance();
-
+            
             builder.Register(e => new ScraperService(
                 storageProvider: e.Resolve<IStorageProvider>(),
-                showDatabase: e.Resolve<IShowDatabase>(),
                 bus: e.Resolve<IBus>(),
                 maxScrapers: 4
             )).As<IScraperService>().InstancePerLifetimeScope();

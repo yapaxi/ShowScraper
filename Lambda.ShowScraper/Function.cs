@@ -43,17 +43,18 @@ namespace Lambda.ShowScraper
 
             var pageUrl = $"http://api.tvmaze.com/shows?page={pageId}";
             var pageResponse = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, pageUrl));
-            var shows = JArray.Parse(await pageResponse.Content.ReadAsStringAsync());
 
-            if (!shows.Any())
+            if (pageResponse.StatusCode == HttpStatusCode.NotFound)
             {
                 return "end";
             }
 
+            var shows = JArray.Parse(await pageResponse.Content.ReadAsStringAsync());
+            
             var counter = 0;
             int? lastShowId = null;
             var pageIncomplete = false;
-            foreach (var showBrief in shows)
+            foreach (var showBrief in shows.OrderBy(e => e["id"].Value<int>()))
             {
                 var showId = showBrief["id"].Value<int>();
 
@@ -70,9 +71,13 @@ namespace Lambda.ShowScraper
 
                 var url = $"http://api.tvmaze.com/shows/{showId}?embed=cast";
                 var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url));
+
+                response.EnsureSuccessStatusCode();
+
                 var show = JObject.Parse(await response.Content.ReadAsStringAsync());
                 var doc = new JObject();
                 doc["id"] = showId;
+                doc["pageId"] = pageId;
                 doc["name"] = show["name"];
                 doc["cast"] = show["_embedded"]["cast"];
                 var table = Table.LoadTable(_client, "Scraper.Shows");

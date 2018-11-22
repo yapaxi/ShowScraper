@@ -2,7 +2,6 @@
 using ShowScraper.BusinessLogic.Contracts;
 using ShowScraper.BusinessLogic.DataAccess;
 using ShowScraper.BusinessLogic.DataAccess.Model;
-using ShowScraper.BusinessLogic.TVMaze;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,14 +13,12 @@ namespace ShowScraper.BusinessLogic
     public class ScraperService : IScraperService
     {
         private readonly IStorageProvider _storageProvider;
-        private readonly IShowDatabase _showDatabase;
         private readonly IBus _bus;
         private readonly int _maxScrapers;
 
-        public ScraperService(IStorageProvider storageProvider, IShowDatabase showDatabase, IBus bus, int maxScrapers)
+        public ScraperService(IStorageProvider storageProvider, IBus bus, int maxScrapers)
         {
             _storageProvider = storageProvider;
-            _showDatabase = showDatabase;
             _bus = bus;
             _maxScrapers = maxScrapers;
         }
