@@ -79,7 +79,10 @@ namespace Lambda.ShowScraper
                 doc["id"] = showId;
                 doc["pageId"] = pageId;
                 doc["name"] = show["name"];
-                doc["cast"] = show["_embedded"]["cast"];
+                var cast = show["_embedded"]["cast"]
+                    .OrderByDescending(e => e["person"]["birthday"]?.Value<DateTime?>() ?? default(DateTime))
+                    .ToArray();
+                doc["cast"] = new JArray(cast);
                 var table = Table.LoadTable(_client, "Scraper.Shows");
                 var document = Document.FromJson(doc.ToString());
                 await table.PutItemAsync(document);
