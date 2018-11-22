@@ -15,7 +15,11 @@ namespace ShowScraper.DI
                 .SingleInstance();
 
             builder
-                .Register<IDynamoDBContext>(e => new DynamoDBContext(new AmazonDynamoDBClient()))
+                .RegisterType<AmazonDynamoDBClient>()
+                .SingleInstance();
+
+            builder
+                .Register<IDynamoDBContext>(e => new DynamoDBContext(e.Resolve<AmazonDynamoDBClient>()))
                 .SingleInstance();
 
             builder

@@ -1,4 +1,5 @@
-﻿using ShowScraper.BusinessLogic.DataAccess.Model;
+﻿using Newtonsoft.Json.Linq;
+using ShowScraper.BusinessLogic.DataAccess.Model;
 using System.Threading.Tasks;
 
 namespace ShowScraper.BusinessLogic.DataAccess
@@ -9,5 +10,6 @@ namespace ShowScraper.BusinessLogic.DataAccess
         Task SaveJob(Job job);
         Task<string> TrySetExecution(string jobId);
         Task ResetExecution();
+        Task<JArray> GetShows(int page);
     }
 }
