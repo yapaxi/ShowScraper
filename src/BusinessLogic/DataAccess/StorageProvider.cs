@@ -41,5 +41,33 @@ namespace ShowScraper.BusinessLogic.DataAccess
         {
             return _context.SaveAsync(task);
         }
+
+        public async Task<string> TrySetExecution(string jobId)
+        {
+            var currentExecution = await _context.LoadAsync<JobExecution>("1");
+
+            if (currentExecution != null)
+            {
+                return null;
+            }
+
+            var executionId = Guid.NewGuid().ToString("N");
+
+            var execution = new JobExecution()
+            {
+                Id = "1",
+                JobId = jobId,
+                ExecutionId = executionId
+            };
+
+            await _context.SaveAsync(execution);
+
+            return executionId;
+        }
+
+        public Task ResetExecution()
+        {
+            return _context.DeleteAsync("1");
+        }
     }
 }

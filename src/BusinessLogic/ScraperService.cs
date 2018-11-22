@@ -93,27 +93,34 @@ namespace ShowScraper.BusinessLogic
             return new Option<ScraperJob>.Ok(Convert(job));
         }
 
-        public async Task<Option<ScraperJob>> ExecuteJob(string id)
+        public async Task<Option<ScraperJobExecution>> ExecuteJob(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                return new Option<ScraperJob>.PreconditionViolation("JobId cannot be null or empty");
+                return new Option<ScraperJobExecution>.PreconditionViolation("JobId cannot be null or empty");
             }
 
             var job = await _storageProvider.GetJob(id);
 
             if (job != null)
             {
+                var executionId = await _storageProvider.TrySetExecution(job.Id);
+
+                if (executionId == null)
+                {
+                    return new Option<ScraperJobExecution>.Conflict();
+                }
+
                 foreach (var scraperId in job.AssignedScrapers)
                 {
                     await _bus.SendProcessTaskCommand(FormatTaskId(job, scraperId, 0));
                 }
 
-                return new Option<ScraperJob>.Ok(Convert(job));
+                return new Option<ScraperJobExecution>.Ok(new ScraperJobExecution(executionId, id));
             }
             else
             {
-                return new Option<ScraperJob>.NotFound();
+                return new Option<ScraperJobExecution>.NotFound();
             }
         }
 

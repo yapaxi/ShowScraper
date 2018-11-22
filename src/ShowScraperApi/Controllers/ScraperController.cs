@@ -35,7 +35,7 @@ namespace ShowScraper.Api.Controllers
         {
             var result = await _scraperService.ExecuteJob(id);
 
-            return HandleResult(result, content => CreatedAtAction(nameof(Job), new { id = content.Id }, null));
+            return HandleResult(result, content => Ok(content.ExecutionId));
         }
 
         [HttpGet]

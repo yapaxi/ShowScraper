@@ -9,6 +9,6 @@ namespace ShowScraper.BusinessLogic.Contracts
     {
         Task<Option<ScraperJob>> CreateJob(ScraperJobParameters scraperJob);
         Task<Option<ScraperJob>> GetJob(string id);
-        Task<Option<ScraperJob>> ExecuteJob(string id);
+        Task<Option<ScraperJobExecution>> ExecuteJob(string id);
     }
 }

@@ -9,5 +9,7 @@ namespace ShowScraper.BusinessLogic.DataAccess
         Task<JobTask> GetTask(string id);
         Task SaveJob(Job job);
         Task SaveTask(JobTask task);
+        Task<string> TrySetExecution(string jobId);
+        Task ResetExecution();
     }
 }
