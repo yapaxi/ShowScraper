@@ -127,8 +127,10 @@ namespace UnitTests.Lambda
                             {
                                 new { person = new Person { birthday = "2010-01-01" }, orderId = 3 },
                                 new { person = new Person { birthday = "2010-01-03" }, orderId = 1 },
-                                new { person = new Person { birthday = (string)null }, orderId = 4 },
-                                new { person = (Person)null, orderId = 4 },
+                                new { person = new Person { birthday = "2009-00-00" }, orderId = 5 },
+                                new { person = new Person { birthday = "2009-05-00" }, orderId = 4 },
+                                new { person = new Person { birthday = (string)null }, orderId = 6 },
+                                new { person = (Person)null, orderId = 6 },
                                 new { person = new Person { birthday = "2010-01-02" }, orderId = 2 },
                             }
                         }
