@@ -96,6 +96,7 @@ namespace Lambda.ShowScraper
                             .Value<string>();
 
                         if (DateTime.TryParse(dateString, out var dt) ||
+                            DateTime.TryParseExact(dateString, "yyyy-MM-00", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dt) ||
                             DateTime.TryParseExact(dateString, "yyyy-00-00", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dt))
                         {
                             return dt;
