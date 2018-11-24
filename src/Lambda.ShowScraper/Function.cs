@@ -141,6 +141,11 @@ namespace Lambda.ShowScraper
             var url = $"http://api.tvmaze.com/shows/{showId}?embed=cast";
             var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url));
 
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                throw new Exception($"Throttled on show {showId}");
+            }
+
             response.EnsureSuccessStatusCode();
 
             return JObject.Parse(await response.Content.ReadAsStringAsync());
@@ -160,6 +165,13 @@ namespace Lambda.ShowScraper
             {
                 return null;
             }
+
+            if (pageResponse.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                throw new Exception($"Throttled on page {pageId}");
+            }
+
+            pageResponse.EnsureSuccessStatusCode();
 
             return JArray.Parse(await pageResponse.Content.ReadAsStringAsync());
         }
