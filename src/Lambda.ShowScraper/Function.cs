@@ -66,7 +66,7 @@ namespace Lambda.ShowScraper
                     continue;
                 }
 
-                if (++counter >= job.MaxShowsPerTask)
+                if (counter++ >= job.MaxShowsPerTask)
                 {
                     pageIncomplete = true;
                     break;
@@ -82,7 +82,13 @@ namespace Lambda.ShowScraper
                 };
 
                 var cast = show["_embedded"]["cast"]
-                    .OrderByDescending(e => e["person"]?["birthday"]?.Value<DateTime?>() ?? default(DateTime))
+                    .OrderByDescending(e =>
+                    {
+                        return e
+                            .SelectToken("person")?
+                            .SelectToken("birthday")?
+                            .Value<DateTime?>() ?? default(DateTime);
+                    })
                     .ToArray();
 
                 doc["cast"] = new JArray(cast);
@@ -104,7 +110,7 @@ namespace Lambda.ShowScraper
             return "continue";
         }
 
-        protected virtual async Task SendScrapPageCommand(string body)
+        public virtual async Task SendScrapPageCommand(string body)
         {
             await _sqs.SendMessageAsync(new Amazon.SQS.Model.SendMessageRequest()
             {
@@ -114,14 +120,14 @@ namespace Lambda.ShowScraper
             });
         }
 
-        protected virtual async Task SaveShow(JObject doc)
+        public virtual async Task SaveShow(JObject doc)
         {
             var table = Table.LoadTable(_client, "Scraper.Shows");
             var document = Document.FromJson(doc.ToString());
             await table.PutItemAsync(document);
         }
 
-        protected virtual async Task<JObject> GetShowWithEmbeddedCast(int showId)
+        public virtual async Task<JObject> GetShowWithEmbeddedCast(int showId)
         {
             var url = $"http://api.tvmaze.com/shows/{showId}?embed=cast";
             var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url));
@@ -131,12 +137,12 @@ namespace Lambda.ShowScraper
             return JObject.Parse(await response.Content.ReadAsStringAsync());
         }
 
-        protected virtual Task<Job> GetJob(string jobId)
+        public virtual Task<Job> GetJob(string jobId)
         {
             return _context.LoadAsync<Job>(jobId);
         }
 
-        protected virtual async Task<JArray> GetShows(int pageId)
+        public virtual async Task<JArray> GetShows(int pageId)
         {
             var pageUrl = $"http://api.tvmaze.com/shows?page={pageId}";
             var pageResponse = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, pageUrl));
