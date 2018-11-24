@@ -34,8 +34,7 @@ namespace Lambda.ShowScraper
             var jobId = message["jobId"].Value<string>();
             var pageId = message["pageId"].Value<int>();
             var lastId = message["lastId"].Value<int>();
-
-
+            
             var job = await GetJob(jobId);
 
             if (job == null)
@@ -100,14 +99,19 @@ namespace Lambda.ShowScraper
                 lastId = lastShowId ?? lastId
             });
 
+            await SendScrapPageCommand(body);
+
+            return "continue";
+        }
+
+        protected virtual async Task SendScrapPageCommand(string body)
+        {
             await _sqs.SendMessageAsync(new Amazon.SQS.Model.SendMessageRequest()
             {
                 QueueUrl = "https://sqs.eu-west-1.amazonaws.com/046957767819/ScraperTasks",
                 DelaySeconds = 15,
                 MessageBody = body,
             });
-            
-            return "continue";
         }
 
         protected virtual async Task SaveShow(JObject doc)
