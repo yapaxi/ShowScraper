@@ -30,6 +30,8 @@ namespace Lambda.ShowScraper
         {
             var record = snsEvent.Records.Single();
 
+            Console.WriteLine(record.Body);
+
             var message = JObject.Parse(record.Body);
             var jobId = message["jobId"].Value<string>();
             var pageId = message["pageId"].Value<int>();
@@ -39,11 +41,13 @@ namespace Lambda.ShowScraper
 
             if (job == null)
             {
+                Console.WriteLine("job-not-found");
                 return "job-not-found";
             }
 
             if (pageId > job.EndPage)
             {
+                Console.WriteLine("end-page-reached");
                 return "end-page-reached";
             }
 
@@ -51,6 +55,7 @@ namespace Lambda.ShowScraper
 
             if (shows == null)
             {
+                Console.WriteLine("no-more-shows");
                 return "no-more-shows";
             }
 
@@ -68,6 +73,7 @@ namespace Lambda.ShowScraper
 
                 if (counter++ >= job.MaxShowsPerTask)
                 {
+                    Console.WriteLine($"page break on {counter} shows");
                     pageIncomplete = true;
                     break;
                 }
@@ -104,6 +110,9 @@ namespace Lambda.ShowScraper
                 pageId = pageIncomplete ? pageId : (pageId + 1),
                 lastId = lastShowId ?? lastId
             });
+
+
+            Console.WriteLine($"continue with '{body}'");
 
             await SendScrapPageCommand(body);
 
