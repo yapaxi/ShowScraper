@@ -23,7 +23,8 @@ namespace ShowScraper.Api.Controllers
         {
             var result = await _scraperService.CreateJob(new ScraperJobParameters(
                 maxShowsPerTask: request?.MaxShowsPerScraper,
-                startingPage: request?.StartingPage
+                startPage: request?.StartPage,
+                endPage: request?.EndPage
             ));
 
             return HandleResult(result, content => CreatedAtAction(nameof(Job), new { id = content.Id }, content.Id));

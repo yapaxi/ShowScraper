@@ -2,18 +2,14 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Autofac;
-using Amazon.SimpleNotificationService;
+using Amazon.SQS;
 
 namespace ShowScraper.DI
 {
-    public class DataAccessModule : Module
+    public class AWSModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder
-                .Register<IAmazonSimpleNotificationService>(e => new AmazonSimpleNotificationServiceClient())
-                .SingleInstance();
-
             builder
                 .RegisterType<AmazonDynamoDBClient>()
                 .SingleInstance();
@@ -23,7 +19,7 @@ namespace ShowScraper.DI
                 .SingleInstance();
 
             builder
-                .Register<IAmazonSimpleNotificationService>(e => new AmazonSimpleNotificationServiceClient())
+                .Register<IAmazonSQS>(e => new AmazonSQSClient())
                 .SingleInstance();
 
 

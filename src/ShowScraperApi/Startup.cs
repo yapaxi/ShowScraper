@@ -48,7 +48,7 @@ namespace ShowScraper
         {
             var builder = new ContainerBuilder();
             builder.RegisterModule(new BusinessLogicModule(_configuration));
-            builder.RegisterModule(new DataAccessModule());
+            builder.RegisterModule(new AWSModule());
             builder.Populate(services);
             return builder.Build();
         }

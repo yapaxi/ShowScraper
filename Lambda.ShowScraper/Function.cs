@@ -12,7 +12,8 @@ using System.Net;
 using Amazon.DynamoDBv2.Model;
 using Amazon.DynamoDBv2.DocumentModel;
 using Newtonsoft.Json.Linq;
-using Amazon.SimpleNotificationService;
+using Amazon.SQS;
+using Amazon.Lambda.SQSEvents;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
@@ -23,16 +24,17 @@ namespace Lambda.ShowScraper
         private static readonly AmazonDynamoDBClient _client = new AmazonDynamoDBClient();
         private static readonly DynamoDBContext _context = new DynamoDBContext(_client);
         private static readonly HttpClient _httpClient = new HttpClient();
-        private static readonly IAmazonSimpleNotificationService _sns = new AmazonSimpleNotificationServiceClient();
+        private static readonly IAmazonSQS _sqs = new AmazonSQSClient();
 
-        public async Task<string> Handle(SNSEvent snsEvent)
+        public async Task<string> Handle(SQSEvent snsEvent)
         {
             var record = snsEvent.Records.Single();
 
-            var message = JObject.Parse(record.Sns.Message);
+            var message = JObject.Parse(record.Body);
             var jobId = message["jobId"].Value<string>();
             var pageId = message["pageId"].Value<int>();
             var lastId = message["lastId"].Value<int>();
+
 
             var job = await GetJob(jobId);
 
@@ -41,11 +43,16 @@ namespace Lambda.ShowScraper
                 return "job-not-found";
             }
 
+            if (pageId > job.EndPage)
+            {
+                return "end-page-reached";
+            }
+
             var shows = await GetShows(pageId);
 
             if (shows == null)
             {
-                return "end";
+                return "no-more-shows";
             }
 
             var counter = 0;
@@ -86,15 +93,20 @@ namespace Lambda.ShowScraper
                 lastShowId = showId;
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(15));
-
-            await _sns.PublishAsync("arn:aws:sns:eu-west-1:046957767819:ScraperTasks", JsonConvert.SerializeObject(new
+            var body = JsonConvert.SerializeObject(new
             {
                 jobId = jobId,
                 pageId = pageIncomplete ? pageId : (pageId + 1),
                 lastId = lastShowId ?? lastId
-            }));
+            });
 
+            await _sqs.SendMessageAsync(new Amazon.SQS.Model.SendMessageRequest()
+            {
+                QueueUrl = "https://sqs.eu-west-1.amazonaws.com/046957767819/ScraperTasks",
+                DelaySeconds = 15,
+                MessageBody = body,
+            });
+            
             return "continue";
         }
 
@@ -142,5 +154,8 @@ namespace Lambda.ShowScraper
 
         [DynamoDBProperty]
         public int MaxShowsPerTask { get; set; }
+
+        [DynamoDBProperty]
+        public int EndPage { get; set; }
     }
 }

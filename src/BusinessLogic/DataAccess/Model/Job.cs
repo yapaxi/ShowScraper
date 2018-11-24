@@ -15,7 +15,10 @@ namespace ShowScraper.BusinessLogic.DataAccess.Model
         public int MaxShowsPerTask { get; set; }
 
         [DynamoDBProperty]
-        public int StartingPage { get; set; }
+        public int StartPage { get; set; }
+
+        [DynamoDBProperty]
+        public int EndPage { get; set; }
 
         [DynamoDBProperty]
         public DateTime CreatedAtUtc { get; set; }

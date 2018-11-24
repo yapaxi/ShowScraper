@@ -38,8 +38,8 @@ namespace ShowScraper.DI
                 .InstancePerLifetimeScope();
 
             builder.Register(e => new Bus(
-                scraperTaskSNSTopic: _configuration["sns:scraper-tasks"],
-                sns: e.Resolve<Amazon.SimpleNotificationService.IAmazonSimpleNotificationService>()
+                scraperTasksSQSQueue: _configuration["sqs:scraper-tasks"],
+                sqs: e.Resolve<Amazon.SQS.IAmazonSQS>()
             )).As<IBus>().SingleInstance();
 
             base.Load(builder);

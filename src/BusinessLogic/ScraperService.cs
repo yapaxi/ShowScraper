@@ -26,23 +26,30 @@ namespace ShowScraper.BusinessLogic
         public async Task<Option<ScraperJob>> CreateJob(ScraperJobParameters scraperJob)
         {
             var maxShowsPerTask = scraperJob?.MaxShowsPerTask ?? 20;
-            var startingPage = scraperJob?.StartingPage ?? 0;
+            var startPage = scraperJob?.StartPage ?? 0;
+            var endPage = scraperJob?.EndPage ?? int.MaxValue;
 
             if (maxShowsPerTask <= 0 || maxShowsPerTask > 250)
             {
                 return new Option<ScraperJob>.PreconditionViolation($"Invalid maxium shows per task count: {maxShowsPerTask}");
             }
 
-            if (startingPage < 0)
+            if (startPage < 0)
             {
-                return new Option<ScraperJob>.PreconditionViolation($"Invalid starting page: {startingPage}");
+                return new Option<ScraperJob>.PreconditionViolation($"Invalid starting page: {startPage}");
+            }
+            
+            if (startPage > endPage)
+            {
+                return new Option<ScraperJob>.PreconditionViolation($"Start page is greater than end page: {startPage} > {endPage}");
             }
 
             var job = new Job()
             {
                 Id = Guid.NewGuid().ToString("N"),
                 MaxShowsPerTask = maxShowsPerTask,
-                StartingPage = startingPage,
+                StartPage = startPage,
+                EndPage = endPage,
                 CreatedAtUtc = DateTime.UtcNow
             };
             
@@ -69,7 +76,7 @@ namespace ShowScraper.BusinessLogic
                     return new Option<ScraperJobExecution>.Conflict();
                 }
 
-                await _bus.SendScrapPageCommand(job.Id, job.StartingPage, -1);
+                await _bus.SendScrapPageCommand(job.Id, job.StartPage, -1);
 
                 return new Option<ScraperJobExecution>.Ok(new ScraperJobExecution(executionId, id));
             }
@@ -103,8 +110,9 @@ namespace ShowScraper.BusinessLogic
             return new ScraperJob(
                 id: job.Id,
                 maxShowsPerTask: job.MaxShowsPerTask,
-                startingPage: job.StartingPage,
-                createdAtUtc: job.CreatedAtUtc
+                startPage: job.StartPage,
+                createdAtUtc: job.CreatedAtUtc,
+                endPage: job.EndPage
             );
         }
     }

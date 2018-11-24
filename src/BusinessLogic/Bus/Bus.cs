@@ -1,4 +1,5 @@
-﻿using Amazon.SimpleNotificationService;
+﻿using Amazon.SQS;
+using Amazon.SQS.Model;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
@@ -7,23 +8,30 @@ namespace ShowScraper.BusinessLogic.Bus
 {
     public class Bus : IBus
     {
-        private readonly string _scraperTaskSNSTopic;
-        private readonly IAmazonSimpleNotificationService _sns;
+        private readonly string _scraperTasksSQSQueue;
+        private readonly IAmazonSQS _sqs;
 
-        public Bus(string scraperTaskSNSTopic, IAmazonSimpleNotificationService sns)
+        public Bus(string scraperTasksSQSQueue, IAmazonSQS sqs)
         {
-            this._scraperTaskSNSTopic = scraperTaskSNSTopic;
-            _sns = sns ?? throw new ArgumentNullException(nameof(sns));
+            _scraperTasksSQSQueue = scraperTasksSQSQueue;
+            _sqs = sqs ?? throw new ArgumentNullException(nameof(sqs));
         }
 
         public Task SendScrapPageCommand(string jobId, int pageId, int lastId)
         {
-            return _sns.PublishAsync(_scraperTaskSNSTopic, JsonConvert.SerializeObject(new
+            var body = JsonConvert.SerializeObject(new
             {
                 jobId = jobId,
                 pageId = pageId,
                 lastId = lastId
-            }));
+            });
+
+            return _sqs.SendMessageAsync(new SendMessageRequest()
+            {
+                MessageBody = body,
+                DelaySeconds = 15,
+                QueueUrl = _scraperTasksSQSQueue
+            });
         }
     }
 }
