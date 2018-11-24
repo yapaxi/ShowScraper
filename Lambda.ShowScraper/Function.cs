@@ -34,23 +34,20 @@ namespace Lambda.ShowScraper
             var pageId = message["pageId"].Value<int>();
             var lastId = message["lastId"].Value<int>();
 
-            var job = await _context.LoadAsync<Job>(jobId);
+            var job = await GetJob(jobId);
 
             if (job == null)
             {
                 return "job-not-found";
             }
 
-            var pageUrl = $"http://api.tvmaze.com/shows?page={pageId}";
-            var pageResponse = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, pageUrl));
+            var shows = await GetShows(pageId);
 
-            if (pageResponse.StatusCode == HttpStatusCode.NotFound)
+            if (shows == null)
             {
                 return "end";
             }
 
-            var shows = JArray.Parse(await pageResponse.Content.ReadAsStringAsync());
-            
             var counter = 0;
             int? lastShowId = null;
             var pageIncomplete = false;
@@ -69,23 +66,22 @@ namespace Lambda.ShowScraper
                     break;
                 }
 
-                var url = $"http://api.tvmaze.com/shows/{showId}?embed=cast";
-                var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url));
+                var show = await GetShowWithEmbeddedCast(showId);
 
-                response.EnsureSuccessStatusCode();
+                var doc = new JObject
+                {
+                    ["id"] = showId,
+                    ["pageId"] = pageId,
+                    ["name"] = show["name"]
+                };
 
-                var show = JObject.Parse(await response.Content.ReadAsStringAsync());
-                var doc = new JObject();
-                doc["id"] = showId;
-                doc["pageId"] = pageId;
-                doc["name"] = show["name"];
                 var cast = show["_embedded"]["cast"]
-                    .OrderByDescending(e => e["person"]["birthday"]?.Value<DateTime?>() ?? default(DateTime))
+                    .OrderByDescending(e => e["person"]?["birthday"]?.Value<DateTime?>() ?? default(DateTime))
                     .ToArray();
+
                 doc["cast"] = new JArray(cast);
-                var table = Table.LoadTable(_client, "Scraper.Shows");
-                var document = Document.FromJson(doc.ToString());
-                await table.PutItemAsync(document);
+
+                await SaveShow(doc);
 
                 lastShowId = showId;
             }
@@ -100,6 +96,41 @@ namespace Lambda.ShowScraper
             }));
 
             return "continue";
+        }
+
+        protected virtual async Task SaveShow(JObject doc)
+        {
+            var table = Table.LoadTable(_client, "Scraper.Shows");
+            var document = Document.FromJson(doc.ToString());
+            await table.PutItemAsync(document);
+        }
+
+        protected virtual async Task<JObject> GetShowWithEmbeddedCast(int showId)
+        {
+            var url = $"http://api.tvmaze.com/shows/{showId}?embed=cast";
+            var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url));
+
+            response.EnsureSuccessStatusCode();
+
+            return JObject.Parse(await response.Content.ReadAsStringAsync());
+        }
+
+        protected virtual Task<Job> GetJob(string jobId)
+        {
+            return _context.LoadAsync<Job>(jobId);
+        }
+
+        protected virtual async Task<JArray> GetShows(int pageId)
+        {
+            var pageUrl = $"http://api.tvmaze.com/shows?page={pageId}";
+            var pageResponse = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, pageUrl));
+
+            if (pageResponse.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            return JArray.Parse(await pageResponse.Content.ReadAsStringAsync());
         }
     }
 
