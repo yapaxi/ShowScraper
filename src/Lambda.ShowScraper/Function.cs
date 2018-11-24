@@ -90,10 +90,20 @@ namespace Lambda.ShowScraper
                 var cast = show["_embedded"]["cast"]
                     .OrderByDescending(e =>
                     {
-                        return e
+                        var dateString = e
                             .SelectToken("person")?
                             .SelectToken("birthday")?
-                            .Value<DateTime?>() ?? default(DateTime);
+                            .Value<string>();
+
+                        if (DateTime.TryParse(dateString, out var dt) ||
+                            DateTime.TryParseExact(dateString, "yyyy-00-00", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dt))
+                        {
+                            return dt;
+                        }
+                        else
+                        {
+                            return default(DateTime);
+                        }
                     })
                     .ToArray();
 
